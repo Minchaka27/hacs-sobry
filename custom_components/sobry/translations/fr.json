@@ -72,9 +72,8 @@
       "median_price": {
         "name": "Prix médian"
       },
-        "next_hour_price": {
-          "name": "Prix heure prochaine"
-        }
+      "next_hour_price": {
+        "name": "Prix heure prochaine"
       }
     }
   },
@@ -142,9 +141,6 @@
           "description": "Affichage HT ou TTC"
         }
       }
-    }
-  }
-}
     }
   }
 }

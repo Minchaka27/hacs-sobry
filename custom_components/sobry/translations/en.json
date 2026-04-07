@@ -73,10 +73,10 @@
         "name": "Median Price"
       },
       "next_hour_price": {
-          "name": "Next Hour Price"
-        }
+        "name": "Next Hour Price"
       }
-    },
+    }
+  },
   "services": {
     "get_price_history": {
       "name": "Get Price History",

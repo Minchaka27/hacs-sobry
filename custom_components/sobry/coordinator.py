@@ -180,8 +180,6 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
 
         This is a static method that can be called without an instance.
         """
-        import aiohttp
-
         url = f"{API_BASE_URL}{API_ENDPOINT_RAW}"
         params: dict[str, str] = {
             "start": start_date,
