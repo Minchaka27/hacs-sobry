@@ -79,6 +79,15 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                         raise UpdateFailed("No data available for the requested period")
                     elif response.status >= 400:
                         text = await response.text()
+                        # Check if it's a "data not available yet" error (before ~13h)
+                        if (
+                            "pas disponible" in text.lower()
+                            or "not available" in text.lower()
+                        ):
+                            _LOGGER.debug(
+                                "Tomorrow data not available yet (before ~13h), trying today's data"
+                            )
+                            return await self._fetch_today_data()
                         raise UpdateFailed(f"API error {response.status}: {text}")
 
                     data = await response.json()
@@ -100,6 +109,101 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             raise UpdateFailed(f"Connection error: {err}") from err
         except Exception as err:
             raise UpdateFailed(f"Unexpected error: {err}") from err
+
+    async def _fetch_today_data(self) -> dict:
+        """Fetch today's data as fallback when tomorrow data is not available."""
+        from datetime import date
+
+        today = date.today().isoformat()
+        url = f"{API_BASE_URL}{API_ENDPOINT_RAW}"
+        params: dict[str, str] = {
+            "start": today,
+            "end": today,
+            "segment": self.segment,
+            "turpe": self.turpe,
+            "profil": self.profil,
+            "display": self.display,
+            "granularity": "hourly",
+        }
+
+        _LOGGER.debug("Fetching today's data from %s with params: %s", url, params)
+
+        try:
+            async with aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=API_TIMEOUT)
+            ) as session:
+                async with session.get(url, params=params) as response:
+                    if response.status >= 400:
+                        text = await response.text()
+                        raise UpdateFailed(f"API error {response.status}: {text}")
+
+                    data = await response.json()
+
+            if not data.get("success"):
+                raise UpdateFailed("API returned unsuccessful response")
+
+            # Adapt raw endpoint response to tomorrow endpoint format
+            processed_data = {
+                "date": today,
+                "timezone": data.get("timezone", "Europe/Paris (CET)"),
+                "count": data.get("count", 0),
+                "statistics": data.get("statistics", {}),
+                "pricing_metadata": data.get("pricing_metadata", {}),
+                "prices": data.get("data", []),
+                "current_price": None,
+                "next_hour_price": None,
+                "last_updated": dt_util.now().isoformat(),
+                "note": "Données du jour (demain non disponible avant ~13h)",
+            }
+
+            # Find current and next hour prices
+            now = dt_util.now()
+            for price_point in processed_data["prices"]:
+                timestamp_str = price_point.get("timestamp", "")
+                try:
+                    timestamp = dt_util.parse_datetime(timestamp_str)
+                    if timestamp:
+                        if (
+                            timestamp.hour == now.hour
+                            and timestamp.date() == now.date()
+                        ):
+                            processed_data["current_price"] = price_point
+                        if timestamp.hour == (now.hour + 1) % 24:
+                            if timestamp.hour == 0:
+                                if timestamp.date() == now.date() + timedelta(days=1):
+                                    processed_data["next_hour_price"] = price_point
+                            else:
+                                processed_data["next_hour_price"] = price_point
+                except (ValueError, TypeError):
+                    continue
+
+            _LOGGER.debug(
+                "Successfully fetched today's data with %d price points",
+                len(processed_data.get("prices", [])),
+            )
+
+            return processed_data
+
+        except Exception as err:
+            _LOGGER.warning("Failed to fetch today's data: %s", err)
+            # Return empty data structure to allow configuration to proceed
+            return self._get_empty_data()
+
+    def _get_empty_data(self) -> dict:
+        """Return empty data structure when no data is available."""
+        now = dt_util.now()
+        return {
+            "date": now.date().isoformat(),
+            "timezone": "Europe/Paris (CET)",
+            "count": 0,
+            "statistics": {},
+            "pricing_metadata": {},
+            "prices": [],
+            "current_price": None,
+            "next_hour_price": None,
+            "last_updated": now.isoformat(),
+            "note": "Données temporairement indisponibles (disponibles à partir de ~13h)",
+        }
 
     def _process_data(self, data: dict) -> dict:
         """Process API response data."""

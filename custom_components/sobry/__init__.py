@@ -65,7 +65,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting up Sobry Energy for entry %s", entry.entry_id)
 
     coordinator = SobryDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
+
+    # Try to fetch initial data, but don't fail if data is not available yet
+    # (e.g., before ~13h when tomorrow's data is published)
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception as err:
+        _LOGGER.warning(
+            "Initial data fetch failed for %s: %s. "
+            "This is normal before ~13h when tomorrow's data is published. "
+            "The integration will retry automatically.",
+            entry.entry_id,
+            err,
+        )
+        # Set up coordinator without initial data
+        # It will retry on next update interval
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
