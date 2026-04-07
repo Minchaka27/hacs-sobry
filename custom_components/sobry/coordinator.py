@@ -78,7 +78,7 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             "turpe": self.turpe,
             "profil": self.profil,
             "display": self.display,
-            "granularity": "hourly",
+            "granularity": "quarter_hourly",
         }
 
         _LOGGER.debug("Fetching today's data from %s with params: %s", url, params)
@@ -132,29 +132,30 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                 "pricing_metadata": data.get("pricing_metadata", {}),
                 "prices": prices_data,
                 "current_price": None,
-                "next_hour_price": None,
+                "next_price": None,
                 "last_updated": dt_util.now().isoformat(),
                 "note": None,
             }
 
-            # Find current and next hour prices
+            # Find current and next quarter-hour prices
             now = dt_util.now()
+            current_slot = (now.hour * 4) + (now.minute // 15)
+            next_slot = (current_slot + 1) % 96
+
             for price_point in processed_data["prices"]:
                 timestamp_str = price_point.get("timestamp", "")
                 try:
                     timestamp = dt_util.parse_datetime(timestamp_str)
                     if timestamp:
-                        if (
-                            timestamp.hour == now.hour
-                            and timestamp.date() == now.date()
-                        ):
+                        slot = (timestamp.hour * 4) + (timestamp.minute // 15)
+                        if slot == current_slot and timestamp.date() == now.date():
                             processed_data["current_price"] = price_point
-                        if timestamp.hour == (now.hour + 1) % 24:
-                            if timestamp.hour == 0:
+                        if slot == next_slot:
+                            if next_slot < current_slot:  # Day wrap
                                 if timestamp.date() == now.date() + timedelta(days=1):
-                                    processed_data["next_hour_price"] = price_point
+                                    processed_data["next_price"] = price_point
                             else:
-                                processed_data["next_hour_price"] = price_point
+                                processed_data["next_price"] = price_point
                 except (ValueError, TypeError):
                     continue
 
@@ -173,11 +174,13 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
     def _process_data(self, data: dict) -> dict:
         """Process API response data."""
         now = dt_util.now()
+        current_slot = (now.hour * 4) + (now.minute // 15)
+        next_slot = (current_slot + 1) % 96
 
-        # Find current price
+        # Find current and next quarter-hour price
         prices = data.get("prices", [])
         current_price = None
-        next_hour_price = None
+        next_price = None
 
         for i, price_point in enumerate(prices):
             timestamp_str = price_point.get("timestamp", "")
@@ -185,17 +188,18 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                 # Parse ISO timestamp
                 timestamp = dt_util.parse_datetime(timestamp_str)
                 if timestamp:
-                    # Current hour
-                    if timestamp.hour == now.hour and timestamp.date() == now.date():
+                    slot = (timestamp.hour * 4) + (timestamp.minute // 15)
+                    # Current slot
+                    if slot == current_slot and timestamp.date() == now.date():
                         current_price = price_point
-                    # Next hour
-                    if timestamp.hour == (now.hour + 1) % 24:
+                    # Next slot
+                    if slot == next_slot:
                         # Handle day wrap
-                        if timestamp.hour == 0:
+                        if next_slot < current_slot:
                             if timestamp.date() == now.date() + timedelta(days=1):
-                                next_hour_price = price_point
+                                next_price = price_point
                         else:
-                            next_hour_price = price_point
+                            next_price = price_point
             except (ValueError, TypeError):
                 continue
 
@@ -203,8 +207,8 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
         if not current_price and prices:
             current_price = prices[0]
 
-        if not next_hour_price and len(prices) > 1:
-            next_hour_price = prices[1]
+        if not next_price and len(prices) > 1:
+            next_price = prices[1]
 
         return {
             "date": data.get("date"),
@@ -214,7 +218,7 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             "pricing_metadata": data.get("pricing_metadata", {}),
             "prices": prices,
             "current_price": current_price,
-            "next_hour_price": next_hour_price,
+            "next_price": next_price,
             "last_updated": now.isoformat(),
         }
 
@@ -243,8 +247,8 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
         # Default fallback
         return "price_ttc_eur_kwh"
 
-    def get_price_for_hour(self, hour: int) -> dict | None:
-        """Get price data for a specific hour."""
+    def get_price_for_slot(self, slot: int) -> dict | None:
+        """Get price data for a specific 15-min slot (0-95)."""
         if not self.data:
             return None
 
@@ -253,11 +257,17 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             timestamp_str = price_point.get("timestamp", "")
             try:
                 timestamp = dt_util.parse_datetime(timestamp_str)
-                if timestamp and timestamp.hour == hour:
-                    return price_point
+                if timestamp:
+                    price_slot = (timestamp.hour * 4) + (timestamp.minute // 15)
+                    if price_slot == slot:
+                        return price_point
             except (ValueError, TypeError):
                 continue
         return None
+
+    def get_price_for_hour(self, hour: int) -> dict | None:
+        """Get price data for a specific hour (returns first 15-min slot of hour)."""
+        return self.get_price_for_slot(hour * 4)
 
     @staticmethod
     async def async_fetch_history(
@@ -268,7 +278,7 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
         turpe: str = "CU4",
         profil: str = "particulier",
         display: str = "TTC",
-        granularity: str = "hourly",
+        granularity: str = "quarter_hourly",
     ) -> dict:
         """Fetch historical price data from Sobry API.
 
