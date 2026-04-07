@@ -152,7 +152,7 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                 "count": data.get("count", 0),
                 "statistics": data.get("statistics", {}),
                 "pricing_metadata": data.get("pricing_metadata", {}),
-                "prices": data.get("prices", []),
+                "prices": data.get("data", []),
                 "current_price": None,
                 "next_hour_price": None,
                 "last_updated": dt_util.now().isoformat(),
@@ -319,7 +319,7 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
 
         return {
             "count": data.get("count", 0),
-            "prices": data.get("prices", []),
+            "prices": data.get("data", []),
             "statistics": data.get("statistics", {}),
             "date_range": data.get("date_range", {}),
             "timezone": data.get("timezone"),

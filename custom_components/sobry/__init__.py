@@ -185,10 +185,10 @@ async def _async_handle_get_all_prices(
     )
 
     try:
-        from datetime import date
+        from datetime import date, timedelta
 
         today = date.today().isoformat()
-        tomorrow = (date.today()).isoformat()
+        tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
         # Fetch today's prices via the raw endpoint
         prices_data = await SobryDataUpdateCoordinator.async_fetch_history(
