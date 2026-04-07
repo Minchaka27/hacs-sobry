@@ -1,0 +1,150 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configuration Sobry Energy",
+        "description": "Configurez votre accès aux prix de l'électricité Sobry.",
+        "data": {
+          "segment": "Segment tarifaire"
+        }
+      },
+      "turpe": {
+        "title": "Option TURPE",
+        "description": "Sélectionnez votre option TURPE pour le segment {segment}.",
+        "data": {
+          "turpe": "Option TURPE"
+        }
+      },
+      "profil": {
+        "title": "Profil client",
+        "description": "Sélectionnez votre profil client.",
+        "data": {
+          "profil": "Profil"
+        }
+      },
+      "display": {
+        "title": "Mode d'affichage",
+        "description": "Choisissez si vous souhaitez afficher les prix HT ou TTC.",
+        "data": {
+          "display": "Affichage"
+        }
+      }
+    },
+    "error": {
+      "invalid_turpe_for_segment": "L'option TURPE sélectionnée n'est pas valide pour ce segment",
+      "cannot_connect": "Échec de la connexion à l'API Sobry",
+      "unknown": "Erreur inattendue"
+    },
+    "abort": {
+      "already_configured": "Cette configuration existe déjà"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options Sobry Energy",
+        "description": "Modifiez vos paramètres de tarification (segment: {segment}).",
+        "data": {
+          "turpe": "Option TURPE",
+          "profil": "Profil client",
+          "display": "Mode d'affichage"
+        }
+      }
+    },
+    "error": {
+      "invalid_turpe_for_segment": "L'option TURPE sélectionnée n'est pas valide pour ce segment"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_price": {
+        "name": "Prix actuel"
+      },
+      "min_price": {
+        "name": "Prix minimum"
+      },
+      "max_price": {
+        "name": "Prix maximum"
+      },
+      "avg_price": {
+        "name": "Prix moyen"
+      },
+      "median_price": {
+        "name": "Prix médian"
+      },
+        "next_hour_price": {
+          "name": "Prix heure prochaine"
+        }
+      }
+    }
+  },
+  "services": {
+    "get_price_history": {
+      "name": "Récupérer l'historique des prix",
+      "description": "Récupère l'historique des prix de l'électricité via l'API Sobry",
+      "fields": {
+        "start_date": {
+          "name": "Date de début",
+          "description": "Date de début au format YYYY-MM-DD"
+        },
+        "end_date": {
+          "name": "Date de fin",
+          "description": "Date de fin au format YYYY-MM-DD"
+        },
+        "config_entry_id": {
+          "name": "ID de configuration",
+          "description": "ID de l'entrée de configuration à utiliser (optionnel)"
+        },
+        "segment": {
+          "name": "Segment",
+          "description": "Segment tarifaire (C5 ou C4)"
+        },
+        "turpe": {
+          "name": "Option TURPE",
+          "description": "Option TURPE (CU, CU4, MU4, MUDT, LU)"
+        },
+        "profil": {
+          "name": "Profil",
+          "description": "Profil client (particulier ou pro)"
+        },
+        "display": {
+          "name": "Mode d'affichage",
+          "description": "Affichage HT ou TTC"
+        },
+        "granularity": {
+          "name": "Granularité",
+          "description": "Granularité des données (hourly ou daily)"
+        }
+      }
+    },
+    "get_all_prices": {
+      "name": "Récupérer tous les prix du jour",
+      "description": "Récupère tous les prix de l'électricité pour aujourd'hui (24h)",
+      "fields": {
+        "config_entry_id": {
+          "name": "ID de configuration",
+          "description": "ID de l'entrée de configuration à utiliser (optionnel)"
+        },
+        "segment": {
+          "name": "Segment",
+          "description": "Segment tarifaire (C5 ou C4)"
+        },
+        "turpe": {
+          "name": "Option TURPE",
+          "description": "Option TURPE (CU, CU4, MU4, MUDT, LU)"
+        },
+        "profil": {
+          "name": "Profil",
+          "description": "Profil client (particulier ou pro)"
+        },
+        "display": {
+          "name": "Mode d'affichage",
+          "description": "Affichage HT ou TTC"
+        }
+      }
+    }
+  }
+}
+    }
+  }
+}

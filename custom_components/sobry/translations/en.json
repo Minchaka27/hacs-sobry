@@ -1,0 +1,150 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Sobry Energy Configuration",
+        "description": "Configure your access to Sobry electricity prices.",
+        "data": {
+          "segment": "Tariff Segment"
+        }
+      },
+      "turpe": {
+        "title": "TURPE Option",
+        "description": "Select your TURPE option for segment {segment}.",
+        "data": {
+          "turpe": "TURPE Option"
+        }
+      },
+      "profil": {
+        "title": "Customer Profile",
+        "description": "Select your customer profile.",
+        "data": {
+          "profil": "Profile"
+        }
+      },
+      "display": {
+        "title": "Display Mode",
+        "description": "Choose whether to display prices excluding or including tax.",
+        "data": {
+          "display": "Display"
+        }
+      }
+    },
+    "error": {
+      "invalid_turpe_for_segment": "Selected TURPE option is not valid for this segment",
+      "cannot_connect": "Failed to connect to Sobry API",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "This configuration already exists"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sobry Energy Options",
+        "description": "Modify your pricing parameters (segment: {segment}).",
+        "data": {
+          "turpe": "TURPE Option",
+          "profil": "Customer Profile",
+          "display": "Display Mode"
+        }
+      }
+    },
+    "error": {
+      "invalid_turpe_for_segment": "Selected TURPE option is not valid for this segment"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "current_price": {
+        "name": "Current Price"
+      },
+      "min_price": {
+        "name": "Minimum Price"
+      },
+      "max_price": {
+        "name": "Maximum Price"
+      },
+      "avg_price": {
+        "name": "Average Price"
+      },
+      "median_price": {
+        "name": "Median Price"
+      },
+        "next_hour_price": {
+          "name": "Next Hour Price"
+        }
+      }
+    }
+  },
+  "services": {
+    "get_price_history": {
+      "name": "Get Price History",
+      "description": "Retrieve historical electricity prices from the Sobry API",
+      "fields": {
+        "start_date": {
+          "name": "Start Date",
+          "description": "Start date in YYYY-MM-DD format"
+        },
+        "end_date": {
+          "name": "End Date",
+          "description": "End date in YYYY-MM-DD format"
+        },
+        "config_entry_id": {
+          "name": "Config Entry ID",
+          "description": "Configuration entry ID to use (optional)"
+        },
+        "segment": {
+          "name": "Segment",
+          "description": "Tariff segment (C5 or C4)"
+        },
+        "turpe": {
+          "name": "TURPE Option",
+          "description": "TURPE option (CU, CU4, MU4, MUDT, LU)"
+        },
+        "profil": {
+          "name": "Profile",
+          "description": "Customer profile (particulier or pro)"
+        },
+        "display": {
+          "name": "Display Mode",
+          "description": "Display HT or TTC"
+        },
+        "granularity": {
+          "name": "Granularity",
+          "description": "Data granularity (hourly or daily)"
+        }
+      }
+    },
+    "get_all_prices": {
+      "name": "Get All Today's Prices",
+      "description": "Retrieve all electricity prices for today (24 hours)",
+      "fields": {
+        "config_entry_id": {
+          "name": "Config Entry ID",
+          "description": "Configuration entry ID to use (optional)"
+        },
+        "segment": {
+          "name": "Segment",
+          "description": "Tariff segment (C5 or C4)"
+        },
+        "turpe": {
+          "name": "TURPE Option",
+          "description": "TURPE option (CU, CU4, MU4, MUDT, LU)"
+        },
+        "profil": {
+          "name": "Profile",
+          "description": "Customer profile (particulier or pro)"
+        },
+        "display": {
+          "name": "Display Mode",
+          "description": "Display HT or TTC"
+        }
+      }
+    }
+  }
+}
+    }
+  }
+}

@@ -1,0 +1,121 @@
+get_price_history:
+  name: Get Price History
+  description: Retrieve historical electricity prices from Sobry API
+  fields:
+    start_date:
+      name: Start Date
+      description: Start date for historical data (YYYY-MM-DD)
+      required: true
+      selector:
+        text:
+    end_date:
+      name: End Date
+      description: End date for historical data (YYYY-MM-DD)
+      required: true
+      selector:
+        text:
+    config_entry_id:
+      name: Config Entry ID
+      description: Configuration entry to use for pricing parameters (optional)
+      required: false
+      selector:
+        text:
+    segment:
+      name: Segment
+      description: Tariff segment (C5 or C4)
+      required: false
+      selector:
+        select:
+          options:
+            - "C5"
+            - "C4"
+    turpe:
+      name: TURPE Option
+      description: TURPE option
+      required: false
+      selector:
+        select:
+          options:
+            - "CU"
+            - "CU4"
+            - "MU4"
+            - "MUDT"
+            - "LU"
+    profil:
+      name: Profile
+      description: Customer profile (particulier or pro)
+      required: false
+      selector:
+        select:
+          options:
+            - "particulier"
+            - "pro"
+    display:
+      name: Display Mode
+      description: Display prices HT or TTC
+      required: false
+      selector:
+        select:
+          options:
+            - "HT"
+            - "TTC"
+    granularity:
+      name: Granularity
+      description: Data granularity (hourly or daily)
+      required: false
+      default: hourly
+      selector:
+        select:
+          options:
+            - "hourly"
+            - "daily"
+
+get_all_prices:
+  name: Get All Prices
+  description: Retrieve all prices for today (current day-ahead prices)
+  fields:
+    config_entry_id:
+      name: Config Entry ID
+      description: Configuration entry to use for pricing parameters (optional)
+      required: false
+      selector:
+        text:
+    segment:
+      name: Segment
+      description: Tariff segment (C5 or C4)
+      required: false
+      selector:
+        select:
+          options:
+            - "C5"
+            - "C4"
+    turpe:
+      name: TURPE Option
+      description: TURPE option
+      required: false
+      selector:
+        select:
+          options:
+            - "CU"
+            - "CU4"
+            - "MU4"
+            - "MUDT"
+            - "LU"
+    profil:
+      name: Profile
+      description: Customer profile (particulier or pro)
+      required: false
+      selector:
+        select:
+          options:
+            - "particulier"
+            - "pro"
+    display:
+      name: Display Mode
+      description: Display prices HT or TTC
+      required: false
+      selector:
+        select:
+          options:
+            - "HT"
+            - "TTC"

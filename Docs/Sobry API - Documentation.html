@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sobry API - Documentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #8B7355;      /* Brun principal Sobry */
+            --secondary: #4C3A27;    /* Brun foncé Sobry */
+            --accent: #C9BFAD;       /* Beige clair Sobry */
+            --dark: #1A1A1A;
+            --light-gray: #F5F5F5;
+            --white: #FFFFFF;
+            --text: #333333;
+            --success: #28A745;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--light-gray);
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+            color: var(--white);
+            padding: 3rem 2rem 2rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .logo-container img {
+            max-width: 300px;
+            height: auto;
+        }
+
+        .tagline {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            opacity: 0.95;
+        }
+
+        .api-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-top: 1rem;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Intro Section */
+        .intro {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .intro h2 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .intro p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .intro ul {
+            margin-left: 2rem;
+            margin-top: 1rem;
+        }
+
+        .intro li {
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        /* Access Badge */
+        .access-badge {
+            display: inline-block;
+            background: var(--success);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 1.5rem 0;
+            font-size: 1rem;
+        }
+
+        /* Base URL */
+        .base-url {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .base-url code {
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(139, 115, 85, 0.1) 0%, rgba(76, 58, 39, 0.1) 100%);
+            border-left: 4px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .info-box h3 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .info-box ul {
+            margin-left: 1.5rem;
+        }
+
+        .info-box li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: var(--primary);
+        }
+
+        /* Endpoint Card */
+        .endpoint {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .endpoint:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 25px rgba(139, 115, 85, 0.15);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-gray);
+            flex-wrap: wrap;
+        }
+
+        .method {
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--secondary);
+            word-break: break-word;
+        }
+
+        .endpoint h3 {
+            color: var(--secondary);
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.3rem;
+        }
+
+        .endpoint p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        /* Parameters Table */
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: var(--light-gray);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .params-table th {
+            background: var(--secondary);
+            color: var(--white);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .params-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        .params-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .param-required {
+            background: #DC3545;
+            color: var(--white);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .param-optional {
+            background: var(--accent);
+            color: var(--dark);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+
+        /* Code Blocks */
+        .code-examples {
+            margin: 1.5rem 0;
+        }
+
+        .code-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .code-tab {
+            background: var(--accent);
+            color: var(--dark);
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .code-tab.active {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .code-tab:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .code-content {
+            display: none;
+        }
+
+        .code-content.active {
+            display: block;
+        }
+
+        .code-block {
+            background: var(--dark);
+            color: #00FF00;
+            padding: 1.5rem;
+            border-radius: 0 8px 8px 8px;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Response Example */
+        .response {
+            background: #F8F9FA;
+            border-left: 4px solid var(--success);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .response-header {
+            font-weight: 700;
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .status-badge {
+            background: var(--success);
+            color: white;
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* Try Button */
+        .try-button {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+
+        .try-button:hover {
+            background: var(--secondary);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--secondary);
+            color: var(--white);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .endpoint {
+                padding: 1.5rem;
+            }
+            
+            .endpoint-path {
+                font-size: 1.1rem;
+            }
+            
+            .params-table {
+                font-size: 0.85rem;
+            }
+
+            .params-table th,
+            .params-table td {
+                padding: 0.7rem;
+            }
+
+            .code-block pre {
+                font-size: 0.85rem;
+            }
+
+            .logo-container img {
+                max-width: 200px;
+            }
+
+            .tagline {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+<script type="text/javascript" nonce="f1d4d1b784084004b66b47ff941" src="//local.adguard.org?ts=1775552783767&amp;type=content-script&amp;dmn=api.sobry.co&amp;url=https%3A%2F%2Fapi.sobry.co%2Fdocs&amp;app=com.apple.Safari&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="f1d4d1b784084004b66b47ff941" src="//local.adguard.org?ts=1775552783767&amp;name=AdGuard%20Extra&amp;type=user-script"></script></head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt="Sobry Energy" id="logo">
+        </div>
+        <div class="tagline">Parce que chaque heure compte</div>
+    </header>
+
+    <div class="container">
+        <!-- Introduction -->
+        <div class="intro">
+            <h2>📊 API des prix de l'électricité en France</h2>
+            <p>
+                Cette API vous donne accès en temps réel aux prix de l'électricité en France sur le marché day-ahead EPEX SPOT.
+                Données fiables, mise à jour quotidienne, accès simple et rapide.
+            </p>
+
+            <h3 style="color: var(--secondary); margin-top: 1.5rem; margin-bottom: 0.5rem;">💡 Cas d'usage</h3>
+            <ul>
+                <li><strong>Applications de trading énergétique</strong> - Suivre les prix en temps réel</li>
+                <li><strong>Dashboards de monitoring</strong> - Afficher les statistiques de prix</li>
+                <li><strong>Analyses historiques</strong> - Étudier les tendances de marché</li>
+                <li><strong>Optimisation de consommation</strong> - Planifier les charges selon les prix</li>
+                <li><strong>Alertes automatiques</strong> - Être notifié des prix extrêmes</li>
+            </ul>
+        </div>
+
+        <!-- Personnaliser mon prix -->
+        <div class="endpoint" style="border-left: 4px solid var(--success); background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(255, 255, 255, 1) 100%);">
+            <div class="endpoint-header" style="border-bottom: 2px solid rgba(40, 167, 69, 0.2);">
+                <span class="method" style="background: var(--success);">NOUVEAU</span>
+                <span class="endpoint-path" style="color: var(--success);">🔧 Personnaliser mon prix</span>
+            </div>
+
+            <p>
+                <strong>Calculez automatiquement votre prix final HT/TTC par kWh</strong> en ajoutant simplement quelques paramètres à vos requêtes existantes.
+                L'API intègre le TURPE, l'accise électricité et la TVA selon votre profil.
+            </p>
+
+            <h3>⚡ Comment ça marche ?</h3>
+            <p>
+                Ajoutez les paramètres <code>segment</code> et <code>turpe</code> à vos requêtes sur les routes
+                <code>/api/prices/tomorrow</code> et <code>/api/prices/raw</code>.
+                La réponse sera automatiquement enrichie avec les prix HT (et TTC pour C5) par kWh.
+            </p>
+
+            <h3>📝 Paramètres de tarification</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Paramètre</th>
+                        <th>Type</th>
+                        <th>Requis</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="param-name">segment</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>
+                            Segment tarifaire du compteur.<br>
+                            <strong>Valeurs possibles :</strong><br>
+                            • <code>C5</code> - BT ≤ 36 kVA (défaut)<br>
+                            • <code>C4</code> - BT > 36 kVA<br>
+                            <em>⚠️ Pour C4 : profil forcé à "pro" et display forcé à "HT"</em>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">turpe</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>
+                            Option TURPE pour le calcul du prix final.<br>
+                            <strong>Valeurs C5 :</strong> <code>CU</code> | <code>CU4</code> | <code>MU4</code> | <code>MUDT</code> | <code>LU</code><br>
+                            <strong>Valeurs C4 :</strong> <code>CU</code> | <code>LU</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">profil</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>
+                            Profil client pour l'accise électricité (C5 uniquement).<br>
+                            <strong>Valeurs possibles :</strong><br>
+                            • <code>pro</code> - Professionnel (accise: 25,79 €/MWh)<br>
+                            • <code>particulier</code> - Particulier (accise: 29,98 €/MWh)<br>
+                            <em>Par défaut: particulier. Ignoré pour C4 (forcé à pro).</em>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">display</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>
+                            Mode d'affichage (C5 uniquement).<br>
+                            <strong>Valeurs possibles :</strong> <code>HT</code> | <code>TTC</code><br>
+                            <em>Par défaut: TTC. Ignoré pour C4 (forcé à HT).</em>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📏 Unités utilisées</h3>
+            <div class="info-box" style="background: rgba(139, 115, 85, 0.1); border-left-color: var(--primary);">
+                <ul style="margin-left: 1rem;">
+                    <li><strong><code>spot_price</code></strong> : Prix spot brut en <strong>€/MWh</strong> (valeur originale EPEX SPOT)</li>
+                    <li><strong>Tous les autres prix</strong> : Exprimés en <strong>€/kWh</strong> (spot converti, TURPE, Accise, HT, TTC)</li>
+                </ul>
+            </div>
+
+            <h3>📐 Formule de calcul</h3>
+            <div class="response" style="border-left-color: var(--primary);">
+                <div class="code-block" style="background: #2d2d2d;">
+                    <pre style="color: #f8f8f2;">
+<span style="color: #66d9ef;">Conversion spot</span> : spot_price_eur_kwh = spot_price / 1000
+
+<span style="color: #66d9ef;">Prix HT (€/kWh)</span> = spot_price_eur_kwh + turpe_eur_kwh + accise_eur_kwh
+
+<span style="color: #66d9ef;">Prix TTC (€/kWh)</span> = price_ht_eur_kwh × (1 + 20%)
+
+<span style="color: #a6e22e;">Composantes :</span>
+  • <span style="color: #e6db74;">spot_price_eur_kwh</span> : prix spot converti (€/MWh → €/kWh)
+  • <span style="color: #e6db74;">turpe_eur_kwh</span> : TURPE selon option et plage horaire
+  • <span style="color: #e6db74;">accise_eur_kwh</span> : accise selon profil (pro/particulier)
+
+<span style="color: #a6e22e;">Plages horaires :</span>
+  • HP (Heures Pleines) : 6h - 22h
+  • HC (Heures Creuses) : 22h - 6h
+
+<span style="color: #a6e22e;">Saisons :</span>
+  • H (Haute) : novembre à mars
+  • B (Basse) : avril à octobre</pre>
+                </div>
+            </div>
+
+            <h3>📊 Table TURPE C5 - BT ≤ 36 kVA (c€/kWh)</h3>
+            <table class="params-table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>HPH</th>
+                        <th>HCH</th>
+                        <th>HPB</th>
+                        <th>HCB</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CU</strong></td>
+                        <td>4,84</td>
+                        <td>4,84</td>
+                        <td>4,84</td>
+                        <td>4,84</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CU4</strong></td>
+                        <td>7,49</td>
+                        <td>3,97</td>
+                        <td>1,66</td>
+                        <td>1,16</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MUDT</strong></td>
+                        <td>4,94</td>
+                        <td>3,50</td>
+                        <td>4,94</td>
+                        <td>3,50</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MU4</strong></td>
+                        <td>7,00</td>
+                        <td>3,73</td>
+                        <td>1,61</td>
+                        <td>1,11</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LU</strong></td>
+                        <td>1,25</td>
+                        <td>1,25</td>
+                        <td>1,25</td>
+                        <td>1,25</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📊 Table TURPE C4 - BT > 36 kVA (c€/kWh)</h3>
+            <table class="params-table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th>Option</th>
+                        <th>HPH</th>
+                        <th>HCH</th>
+                        <th>HPB</th>
+                        <th>HCB</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CU</strong> - Courte Utilisation</td>
+                        <td>6,91</td>
+                        <td>4,21</td>
+                        <td>2,13</td>
+                        <td>1,52</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LU</strong> - Longue Utilisation</td>
+                        <td>5,69</td>
+                        <td>3,47</td>
+                        <td>2,01</td>
+                        <td>1,49</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-box" style="margin-top: 1.5rem; background: rgba(40, 167, 69, 0.1); border-left-color: var(--success);">
+                <h3 style="color: var(--success);">💡 Bon à savoir</h3>
+                <ul>
+                    <li><strong>Rétrocompatibilité :</strong> Sans les paramètres <code>turpe</code>/<code>segment</code>, la réponse reste identique à l'actuelle</li>
+                    <li><strong>Segment C5 (défaut) :</strong> Prix HT ou TTC selon <code>display</code>, profil pro ou particulier</li>
+                    <li><strong>Segment C4 :</strong> Prix <strong>HT uniquement</strong>, profil <strong>pro automatique</strong> (accise 25,79 €/MWh)</li>
+                    <li><strong>Détail complet :</strong> Chaque point inclut <code>spot_price_eur_kwh</code>, <code>turpe_eur_kwh</code>, <code>accise_eur_kwh</code>, <code>price_ht_eur_kwh</code></li>
+                    <li><strong>Métadonnées :</strong> Un bloc <code>pricing_metadata</code> détaille les paramètres, formules et unités utilisés</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Access Badge -->
+        <div style="text-align: center;">
+            <span class="access-badge">🔓 Route publique - Sans authentification</span>
+        </div>
+
+        <!-- Base URL -->
+        <div class="base-url">
+            <strong>URL de base :</strong>
+            <br><code>https://api.sobry.co</code>
+        </div>
+
+        <!-- Informations importantes -->
+        <div class="info-box">
+            <h3>📋 Informations importantes</h3>
+            <ul>
+                <li><strong>Format de réponse :</strong> JSON</li>
+                <li><strong>Authentification :</strong> Aucune (accès public)</li>
+                <li><strong>Rate Limiting :</strong> 100 requêtes par minute</li>
+                <li><strong>Timezone par défaut :</strong> CET (Europe/Paris)</li>
+                <li><strong>Granularité par défaut :</strong> quarter_hourly (quart horaire)</li>
+                <li><strong>Granularités disponibles :</strong> quarter_hourly, hourly, daily</li>
+                <li><strong>Provider :</strong> EPEX SPOT</li>
+                <li><strong>Pays :</strong> France (FR)</li>
+            </ul>
+        </div>
+
+        <!-- Endpoint 1: Tomorrow -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method">GET</span>
+                <span class="endpoint-path">/api/prices/tomorrow</span>
+            </div>
+
+            <p>
+                Récupère les prix day-ahead pour <strong>demain</strong> avec des statistiques automatiques
+                (min, max, moyenne, médiane). Idéal pour avoir un aperçu rapide des prix à venir.
+            </p>
+
+            <h3>📝 Paramètres optionnels (tarification)</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Paramètre</th>
+                        <th>Type</th>
+                        <th>Requis</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="param-name">segment</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>Segment: <code>C5</code> (défaut) | <code>C4</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">turpe</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>CU</code> | <code>CU4</code> | <code>MU4</code> | <code>MUDT</code> | <code>LU</code><br>C4: <code>CU</code> | <code>LU</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">profil</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>pro</code> | <code>particulier</code> (défaut). C4: forcé à pro</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">display</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>HT</code> | <code>TTC</code> (défaut). C4: forcé à HT</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📊 Exemples de requête</h3>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="showCode('tomorrow', 'curl')">cURL</button>
+                    <button class="code-tab" onclick="showCode('tomorrow', 'js')">JavaScript</button>
+                    <button class="code-tab" onclick="showCode('tomorrow', 'python')">Python</button>
+                </div>
+
+                <div id="tomorrow-curl" class="code-content active">
+                    <div class="code-block">
+                        <pre># Requête basique (prix spot uniquement)
+curl https://api.sobry.co/api/prices/tomorrow
+
+# C5 - Avec calcul prix TTC (particulier, TURPE CU4)
+curl "https://api.sobry.co/api/prices/tomorrow?turpe=CU4&profil=particulier"
+
+# C4 - Prix HT automatique (pro, TURPE LU)
+curl "https://api.sobry.co/api/prices/tomorrow?segment=C4&turpe=LU"</pre>
+                    </div>
+                </div>
+
+                <div id="tomorrow-js" class="code-content">
+                    <div class="code-block">
+                        <pre>// Requête basique
+const response = await fetch('https://api.sobry.co/api/prices/tomorrow');
+const data = await response.json();
+console.log(data.statistics);
+
+// Avec calcul prix HT/TTC
+const params = new URLSearchParams({
+  turpe: 'CU4',
+  profil: 'particulier'
+});
+const response2 = await fetch(`https://api.sobry.co/api/prices/tomorrow?${params}`);
+const data2 = await response2.json();
+console.log(data2.pricing_metadata);
+console.log(data2.prices[0].price_ttc_eur_kwh);</pre>
+                    </div>
+                </div>
+
+                <div id="tomorrow-python" class="code-content">
+                    <div class="code-block">
+                        <pre>import requests
+
+# Requête basique
+response = requests.get('https://api.sobry.co/api/prices/tomorrow')
+data = response.json()
+print(data['statistics'])
+
+# Avec calcul prix HT/TTC
+params = {
+    'turpe': 'CU4',
+    'profil': 'particulier'
+}
+response2 = requests.get(
+    'https://api.sobry.co/api/prices/tomorrow',
+    params=params
+)
+data2 = response2.json()
+print(f"Prix TTC: {data2['prices'][0]['price_ttc_eur_kwh']} €/kWh")</pre>
+                    </div>
+                </div>
+            </div>
+
+            <h3>✅ Réponse basique (200 OK)</h3>
+            <div class="response">
+                <div class="response-header">
+                    <span class="status-badge">200 OK</span>
+                    <span>application/json - Sans paramètres de tarification</span>
+                </div>
+                <div class="code-block">
+                    <pre>{
+  "success": true,
+  "date": "2025-10-24",
+  "timezone": "Europe/Paris (CET)",
+  "count": 24,
+  "statistics": {
+    "min": 42.50,
+    "max": 98.30,
+    "average": 65.20,
+    "median": 63.10
+  },
+  "prices": [
+    {
+      "timestamp": "2025-10-24T00:00:00+02:00",
+      "spot_price": 45.32
+    },
+    {
+      "timestamp": "2025-10-24T01:00:00+02:00",
+      "spot_price": 43.10
+    }
+    // ... 24 heures au total
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <h3>✅ Réponse enrichie (200 OK) - Avec turpe &amp; profil (display=TTC)</h3>
+            <div class="response" style="border-left-color: var(--success);">
+                <div class="response-header">
+                    <span class="status-badge" style="background: var(--success);">200 OK</span>
+                    <span>application/json - Avec ?turpe=CU4&amp;profil=particulier</span>
+                </div>
+                <div class="code-block">
+                    <pre>{
+  "success": true,
+  "date": "2025-10-24",
+  "timezone": "Europe/Paris (CET)",
+  "count": 24,
+  "statistics": {
+    "min": 42.50,
+    "max": 98.30,
+    "average": 65.20,
+    "median": 63.10
+  },
+  <span style="color: #a6e22e;">"pricing_metadata": {
+    "enabled": true,
+    "turpe_option": "CU4",
+    "profil": "particulier",
+    "display": "TTC",
+    "tva_rate": 0.20,
+    "accise_eur_kwh": 0.02998,
+    "turpe_source": "table interne Sobry (c€/kWh → €/kWh)",
+    "formula_ht": "spot_price_eur_kwh + turpe_eur_kwh + accise_eur_kwh",
+    "formula_ttc": "price_ht_eur_kwh × (1 + TVA 20%)",
+    "units": {
+      "spot_price": "€/MWh",
+      "all_other_prices": "€/kWh"
+    }
+  },</span>
+  "prices": [
+    {
+      "timestamp": "2025-10-24T00:00:00+02:00",
+      "spot_price": 45.32,              <span style="color: #75715e;">// €/MWh (valeur brute)</span>
+      <span style="color: #a6e22e;">"spot_price_eur_kwh": 0.04532,   // €/kWh (converti)
+      "turpe_eur_kwh": 0.0397,          // €/kWh (HCB saison basse)
+      "accise_eur_kwh": 0.02998,        // €/kWh (particulier)
+      "price_ht_eur_kwh": 0.115,        // €/kWh (total HT)
+      "price_ttc_eur_kwh": 0.138</span>       <span style="color: #75715e;">// €/kWh (total TTC)</span>
+    },
+    {
+      "timestamp": "2025-10-24T10:00:00+02:00",
+      "spot_price": 85.50,
+      <span style="color: #a6e22e;">"spot_price_eur_kwh": 0.0855,
+      "turpe_eur_kwh": 0.0166,          // €/kWh (HPB heures pleines)
+      "accise_eur_kwh": 0.02998,
+      "price_ht_eur_kwh": 0.13208,
+      "price_ttc_eur_kwh": 0.1585</span>
+    }
+    // ... 24 heures au total
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <h3>✅ Réponse enrichie (200 OK) - Avec display=HT</h3>
+            <div class="response" style="border-left-color: var(--primary);">
+                <div class="response-header">
+                    <span class="status-badge" style="background: var(--primary);">200 OK</span>
+                    <span>application/json - Avec ?turpe=CU4&amp;profil=pro&amp;display=HT</span>
+                </div>
+                <div class="code-block">
+                    <pre>{
+  "success": true,
+  ...
+  <span style="color: #a6e22e;">"pricing_metadata": {
+    "enabled": true,
+    "turpe_option": "CU4",
+    "profil": "pro",
+    "display": "HT",
+    "tva_rate": null,                  <span style="color: #75715e;">// pas de TVA en mode HT</span>
+    "accise_eur_kwh": 0.02579,         <span style="color: #75715e;">// accise pro</span>
+    ...
+  },</span>
+  "prices": [
+    {
+      "timestamp": "2025-10-24T00:00:00+02:00",
+      "spot_price": 45.32,
+      <span style="color: #a6e22e;">"spot_price_eur_kwh": 0.04532,
+      "turpe_eur_kwh": 0.0397,
+      "accise_eur_kwh": 0.02579,
+      "price_ht_eur_kwh": 0.11081</span>     <span style="color: #75715e;">// pas de TTC en mode HT</span>
+    }
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <a href="https://api.sobry.co/api/prices/tomorrow" class="try-button" target="_blank">
+                🧪 Essayer maintenant
+            </a>
+            <a href="https://api.sobry.co/api/prices/tomorrow?turpe=CU4&profil=particulier" class="try-button" target="_blank" style="background: var(--success); margin-left: 0.5rem;">
+                🧪 Essayer avec TTC
+            </a>
+            <a href="https://api.sobry.co/api/prices/tomorrow?turpe=CU4&profil=pro&display=HT" class="try-button" target="_blank" style="background: var(--primary); margin-left: 0.5rem;">
+                🧪 Essayer avec HT
+            </a>
+        </div>
+
+        <!-- Endpoint 2: Raw -->
+        <div class="endpoint">
+            <div class="endpoint-header">
+                <span class="method">GET</span>
+                <span class="endpoint-path">/api/prices/raw</span>
+            </div>
+
+            <p>
+                Récupère les prix bruts entre deux dates. Idéal pour récupérer des données historiques
+                ou construire vos propres analyses. Granularité personnalisable.
+            </p>
+
+            <h3>📝 Paramètres</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Paramètre</th>
+                        <th>Type</th>
+                        <th>Requis</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="param-name">start</span></td>
+                        <td>String</td>
+                        <td><span class="param-required">REQUIS</span></td>
+                        <td>Date de début au format YYYY-MM-DD (exemple: 2025-10-23)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">end</span></td>
+                        <td>String</td>
+                        <td><span class="param-required">REQUIS</span></td>
+                        <td>Date de fin au format YYYY-MM-DD (exemple: 2025-10-24)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">granularity</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>
+                            Granularité des données (défaut: <code>quarter_hourly</code>)<br>
+                            <strong>Valeurs possibles :</strong><br>
+                            • <code>quarter_hourly</code> - Données toutes les 15 minutes<br>
+                            • <code>hourly</code> - Données horaires<br>
+                            • <code>daily</code> - Données journalières
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">timezone</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>Timezone IANA (défaut: <code>CET</code>). Exemple: CET, UTC, Europe/Paris</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">country</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>Code pays ISO (défaut: <code>FR</code> pour France)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">provider</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>Fournisseur de données (défaut: <code>epex</code>)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📝 Paramètres optionnels (tarification)</h3>
+            <table class="params-table">
+                <thead>
+                    <tr>
+                        <th>Paramètre</th>
+                        <th>Type</th>
+                        <th>Requis</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="param-name">segment</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>Segment: <code>C5</code> (défaut) | <code>C4</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">turpe</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>CU</code> | <code>CU4</code> | <code>MU4</code> | <code>MUDT</code> | <code>LU</code><br>C4: <code>CU</code> | <code>LU</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">profil</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>pro</code> | <code>particulier</code> (défaut). C4: forcé à pro</td>
+                    </tr>
+                    <tr>
+                        <td><span class="param-name">display</span></td>
+                        <td>String</td>
+                        <td><span class="param-optional">optionnel</span></td>
+                        <td>C5: <code>HT</code> | <code>TTC</code> (défaut). C4: forcé à HT</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📊 Exemples de requête</h3>
+            <div class="code-examples">
+                <div class="code-tabs">
+                    <button class="code-tab active" onclick="showCode('raw', 'curl')">cURL</button>
+                    <button class="code-tab" onclick="showCode('raw', 'js')">JavaScript</button>
+                    <button class="code-tab" onclick="showCode('raw', 'python')">Python</button>
+                </div>
+
+                <div id="raw-curl" class="code-content active">
+                    <div class="code-block">
+                        <pre># Requête basique (granularité par défaut: quarter_hourly)
+curl "https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24"
+
+# Avec granularité horaire
+curl "https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24&granularity=hourly"
+
+# C5 - Avec calcul prix TTC (particulier, TURPE CU4)
+curl "https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24&turpe=CU4&profil=particulier"
+
+# C4 - Prix HT automatique (pro, TURPE CU)
+curl "https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24&segment=C4&turpe=CU"</pre>
+                    </div>
+                </div>
+
+                <div id="raw-js" class="code-content">
+                    <div class="code-block">
+                        <pre>// Requête basique
+const params = new URLSearchParams({
+  start: '2025-10-23',
+  end: '2025-10-24'
+});
+
+const response = await fetch(`https://api.sobry.co/api/prices/raw?${params}`);
+const data = await response.json();
+console.log(data.data);
+
+// Avec calcul prix HT/TTC
+const params2 = new URLSearchParams({
+  start: '2025-10-23',
+  end: '2025-10-24',
+  turpe: 'CU4',
+  profil: 'particulier'
+});
+
+const response2 = await fetch(`https://api.sobry.co/api/prices/raw?${params2}`);
+const data2 = await response2.json();
+console.log(data2.pricing_metadata);
+console.log(data2.data[0].price_ttc_eur_kwh);</pre>
+                    </div>
+                </div>
+
+                <div id="raw-python" class="code-content">
+                    <div class="code-block">
+                        <pre>import requests
+
+# Requête basique
+params = {
+    'start': '2025-10-23',
+    'end': '2025-10-24'
+}
+
+response = requests.get(
+    'https://api.sobry.co/api/prices/raw',
+    params=params
+)
+data = response.json()
+print(f"Nombre de prix: {data['count']}")
+
+# Avec calcul prix HT/TTC
+params2 = {
+    'start': '2025-10-23',
+    'end': '2025-10-24',
+    'turpe': 'CU4',
+    'profil': 'particulier'
+}
+
+response2 = requests.get(
+    'https://api.sobry.co/api/prices/raw',
+    params=params2
+)
+data2 = response2.json()
+print(f"Prix TTC: {data2['data'][0]['price_ttc_eur_kwh']} €/kWh")</pre>
+                    </div>
+                </div>
+            </div>
+
+            <h3>✅ Réponse basique (200 OK)</h3>
+            <div class="response">
+                <div class="response-header">
+                    <span class="status-badge">200 OK</span>
+                    <span>application/json - Sans paramètres de tarification</span>
+                </div>
+                <div class="code-block">
+                    <pre>{
+  "success": true,
+  "params": {
+    "start": "2025-10-23",
+    "end": "2025-10-24",
+    "country": "FR",
+    "granularity": "quarter_hourly",
+    "provider": "epex",
+    "timezone": "CET"
+  },
+  "count": 96,
+  "data": [
+    {
+      "timestamp": "2025-10-23T00:00:00+02:00",
+      "spot_price": 52.30
+    },
+    {
+      "timestamp": "2025-10-23T00:15:00+02:00",
+      "spot_price": 51.80
+    },
+    {
+      "timestamp": "2025-10-23T00:30:00+02:00",
+      "spot_price": 50.95
+    }
+    // ... tous les prix pour la période (96 points par jour en quarter_hourly)
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <h3>✅ Réponse enrichie (200 OK) - Avec turpe &amp; profil (display=TTC)</h3>
+            <div class="response" style="border-left-color: var(--success);">
+                <div class="response-header">
+                    <span class="status-badge" style="background: var(--success);">200 OK</span>
+                    <span>application/json - Avec ?turpe=CU4&amp;profil=particulier</span>
+                </div>
+                <div class="code-block">
+                    <pre>{
+  "success": true,
+  "params": {
+    "start": "2025-10-23",
+    "end": "2025-10-24",
+    "country": "FR",
+    "granularity": "quarter_hourly",
+    "provider": "epex",
+    "timezone": "CET"
+  },
+  <span style="color: #a6e22e;">"pricing_metadata": {
+    "enabled": true,
+    "turpe_option": "CU4",
+    "profil": "particulier",
+    "display": "TTC",
+    "tva_rate": 0.20,
+    "accise_eur_kwh": 0.02998,
+    "turpe_source": "table interne Sobry (c€/kWh → €/kWh)",
+    "formula_ht": "spot_price_eur_kwh + turpe_eur_kwh + accise_eur_kwh",
+    "formula_ttc": "price_ht_eur_kwh × (1 + TVA 20%)",
+    "units": {
+      "spot_price": "€/MWh",
+      "all_other_prices": "€/kWh"
+    }
+  },</span>
+  "count": 96,
+  "data": [
+    {
+      "timestamp": "2025-10-23T00:00:00+02:00",
+      "spot_price": 52.30,              <span style="color: #75715e;">// €/MWh (valeur brute)</span>
+      <span style="color: #a6e22e;">"spot_price_eur_kwh": 0.0523,    // €/kWh (converti)
+      "turpe_eur_kwh": 0.0397,          // €/kWh (HCB)
+      "accise_eur_kwh": 0.02998,        // €/kWh
+      "price_ht_eur_kwh": 0.12198,      // €/kWh (total HT)
+      "price_ttc_eur_kwh": 0.14638</span>     <span style="color: #75715e;">// €/kWh (total TTC)</span>
+    },
+    {
+      "timestamp": "2025-10-23T10:00:00+02:00",
+      "spot_price": 75.40,
+      <span style="color: #a6e22e;">"spot_price_eur_kwh": 0.0754,
+      "turpe_eur_kwh": 0.0166,          // €/kWh (HPB heures pleines)
+      "accise_eur_kwh": 0.02998,
+      "price_ht_eur_kwh": 0.12198,
+      "price_ttc_eur_kwh": 0.14638</span>
+    }
+    // ... tous les prix pour la période avec détail complet
+  ]
+}</pre>
+                </div>
+            </div>
+
+            <a href="https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24" class="try-button" target="_blank">
+                🧪 Essayer maintenant
+            </a>
+            <a href="https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24&turpe=CU4&profil=particulier" class="try-button" target="_blank" style="background: var(--success); margin-left: 0.5rem;">
+                🧪 Essayer avec TTC
+            </a>
+            <a href="https://api.sobry.co/api/prices/raw?start=2025-10-23&end=2025-10-24&turpe=CU4&profil=pro&display=HT" class="try-button" target="_blank" style="background: var(--primary); margin-left: 0.5rem;">
+                🧪 Essayer avec HT
+            </a>
+        </div>
+
+        <!-- Error Responses -->
+        <div class="info-box">
+            <h3>⚠️ Codes d'erreur</h3>
+            <ul>
+                <li><strong>400 Bad Request</strong> - Paramètres manquants ou invalides (dates mal formatées, start >= end, etc.)</li>
+                <li><strong>404 Not Found</strong> - Aucune donnée disponible pour la période demandée</li>
+                <li><strong>429 Too Many Requests</strong> - Rate limit dépassé (limite: 100 requêtes/minute)</li>
+                <li><strong>500 Internal Server Error</strong> - Erreur serveur ou problème de connexion à la source de données</li>
+            </ul>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>
+            <strong>Sobry Energy API</strong> - Documentation v1.0<br>
+            Parce que chaque heure compte
+        </p>
+        <p style="margin-top: 1rem; opacity: 0.8; font-size: 0.9rem;">
+            Données fournies par EPEX SPOT
+        </p>
+    </footer>
+
+    <script>
+        function showCode(endpoint, lang) {
+            // Cacher tous les contenus de cet endpoint
+            const contents = document.querySelectorAll(`[id^="${endpoint}-"]`);
+            contents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Désactiver tous les onglets de cet endpoint
+            const tabs = document.querySelectorAll('.code-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Activer le contenu sélectionné
+            const selectedContent = document.getElementById(`${endpoint}-${lang}`);
+            if (selectedContent) {
+                selectedContent.classList.add('active');
+            }
+
+            // Activer l'onglet cliqué
+            event.target.classList.add('active');
+        }
+
+        // Charger le logo au chargement de la page
+        window.addEventListener('DOMContentLoaded', function() {
+            // Le logo sera chargé depuis le serveur
+            document.getElementById('logo').src = '/logo.png';
+            document.getElementById('logo').onerror = function() {
+                // Si le logo n'est pas disponible, masquer l'image
+                this.style.display = 'none';
+            };
+        });
+    </script>
+</body>
+</html>
