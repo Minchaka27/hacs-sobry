@@ -88,11 +88,11 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
         price_field = self._get_price_field()
 
         if self.sensor_type == SENSOR_CURRENT_PRICE:
-            price_data = self.coordinator.data.get("current_price", {})
+            price_data = self.coordinator.data.get("current_price") or {}
             return price_data.get(price_field)
 
         elif self.sensor_type == SENSOR_NEXT_HOUR_PRICE:
-            price_data = self.coordinator.data.get("next_hour_price", {})
+            price_data = self.coordinator.data.get("next_hour_price") or {}
             return price_data.get(price_field)
 
         elif self.sensor_type == SENSOR_MIN_PRICE:

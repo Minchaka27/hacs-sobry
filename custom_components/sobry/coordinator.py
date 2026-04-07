@@ -112,13 +112,14 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _fetch_today_data(self) -> dict:
         """Fetch today's data as fallback when tomorrow data is not available."""
-        from datetime import date
+        from datetime import date, timedelta
 
-        today = date.today().isoformat()
+        today = date.today()
+        tomorrow = today + timedelta(days=1)
         url = f"{API_BASE_URL}{API_ENDPOINT_RAW}"
         params: dict[str, str] = {
-            "start": today,
-            "end": today,
+            "start": today.isoformat(),
+            "end": tomorrow.isoformat(),
             "segment": self.segment,
             "turpe": self.turpe,
             "profil": self.profil,
