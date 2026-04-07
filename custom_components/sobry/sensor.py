@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -92,7 +91,7 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
     def _get_sensor_unit(self) -> str | None:
         """Get the sensor unit based on type."""
         if self.sensor_type == SENSOR_ALL_PRICES:
-            return None  # JSON data has no unit
+            return "points"  # Count of price points (96 for 15-min intervals)
         return "€/kWh"
 
     @property
@@ -135,19 +134,9 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
             prices = self.coordinator.data.get("prices", [])
             if not prices:
                 return None
-            price_field = self._get_price_field()
-            # Build a list of all prices with slot and timestamp (96 slots = 15 min intervals)
-            all_prices = []
-            for i, p in enumerate(prices):
-                all_prices.append(
-                    {
-                        "slot": i,
-                        "timestamp": p.get("timestamp"),
-                        "price": p.get(price_field),
-                        "spot_price": p.get("spot_price_eur_kwh"),
-                    }
-                )
-            return json.dumps(all_prices, ensure_ascii=False)
+            # Return count of price points for numeric state (allows history graph)
+            # Full JSON data is available in extra_state_attributes
+            return len(prices)
 
         return None
 
