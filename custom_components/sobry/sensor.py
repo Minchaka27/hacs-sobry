@@ -51,7 +51,6 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Sobry Energy price sensor."""
 
     _attr_has_entity_name = True
-    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -92,6 +91,13 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
         if self.sensor_type == SENSOR_ALL_PRICES:
             return None  # JSON data has no unit
         return "€/kWh"
+
+    @property
+    def state_class(self) -> SensorStateClass | None:
+        """Return the state class of the sensor."""
+        if self.sensor_type == SENSOR_ALL_PRICES:
+            return None  # JSON data is not a measurement
+        return SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self) -> float | str | None:
