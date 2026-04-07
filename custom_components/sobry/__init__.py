@@ -72,10 +72,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await coordinator.async_config_entry_first_refresh()
     except Exception as err:
         _LOGGER.warning(
-            "Initial data fetch failed for %s: %s. "
+            "Initial data fetch failed for %s: %s (%s). "
             "This is normal before ~13h when tomorrow's data is published. "
             "The integration will retry automatically.",
             entry.entry_id,
+            type(err).__name__,
             err,
         )
         # Set up coordinator without initial data

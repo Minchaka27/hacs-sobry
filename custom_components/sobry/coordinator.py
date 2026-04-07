@@ -108,7 +108,9 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
         except aiohttp.ClientError as err:
             raise UpdateFailed(f"Connection error: {err}") from err
         except Exception as err:
-            raise UpdateFailed(f"Unexpected error: {err}") from err
+            raise UpdateFailed(
+                f"Unexpected error ({type(err).__name__}): {err}"
+            ) from err
 
     async def _fetch_today_data(self) -> dict:
         """Fetch today's data as fallback when tomorrow data is not available."""
