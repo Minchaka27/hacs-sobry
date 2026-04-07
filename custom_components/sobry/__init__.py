@@ -35,6 +35,7 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 SERVICE_GET_PRICE_HISTORY = "get_price_history"
 SERVICE_GET_ALL_PRICES = "get_all_prices"
+SERVICE_GET_CHEAPEST_SLOTS = "get_cheapest_slots"
 
 SERVICE_SCHEMA_GET_PRICE_HISTORY = vol.Schema(
     {
@@ -45,12 +46,25 @@ SERVICE_SCHEMA_GET_PRICE_HISTORY = vol.Schema(
         vol.Optional(CONF_TURPE): cv.string,
         vol.Optional(CONF_PROFIL): vol.In(VALID_PROFILS),
         vol.Optional(CONF_DISPLAY): vol.In(VALID_DISPLAYS),
-        vol.Optional("granularity", default="hourly"): vol.In(["hourly", "daily"]),
+        vol.Optional("granularity", default="quarter_hourly"): vol.In(
+            ["quarter_hourly", "hourly", "daily"]
+        ),
     }
 )
 
 SERVICE_SCHEMA_GET_ALL_PRICES = vol.Schema(
     {
+        vol.Optional("config_entry_id"): cv.string,
+        vol.Optional(CONF_SEGMENT): vol.In(VALID_SEGMENTS),
+        vol.Optional(CONF_TURPE): cv.string,
+        vol.Optional(CONF_PROFIL): vol.In(VALID_PROFILS),
+        vol.Optional(CONF_DISPLAY): vol.In(VALID_DISPLAYS),
+    }
+)
+
+SERVICE_SCHEMA_GET_CHEAPEST_SLOTS = vol.Schema(
+    {
+        vol.Required("slots_count", default=4): cv.positive_int,
         vol.Optional("config_entry_id"): cv.string,
         vol.Optional(CONF_SEGMENT): vol.In(VALID_SEGMENTS),
         vol.Optional(CONF_TURPE): cv.string,
@@ -114,6 +128,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_GET_ALL_PRICES,
             async_get_all_prices,
             schema=SERVICE_SCHEMA_GET_ALL_PRICES,
+            supports_response=True,
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_GET_CHEAPEST_SLOTS):
+
+        async def async_get_cheapest_slots(call: ServiceCall) -> dict[str, Any]:
+            """Handle get cheapest slots service call."""
+            return await _async_handle_get_cheapest_slots(hass, call)
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_GET_CHEAPEST_SLOTS,
+            async_get_cheapest_slots,
+            schema=SERVICE_SCHEMA_GET_CHEAPEST_SLOTS,
             supports_response=True,
         )
 
@@ -190,7 +218,7 @@ async def _async_handle_get_all_prices(
         today = date.today().isoformat()
         tomorrow = (date.today() + timedelta(days=1)).isoformat()
 
-        # Fetch today's prices via the raw endpoint
+        # Fetch today's prices via the raw endpoint (15-min intervals)
         prices_data = await SobryDataUpdateCoordinator.async_fetch_history(
             hass,
             start_date=today,
@@ -199,16 +227,16 @@ async def _async_handle_get_all_prices(
             turpe=turpe,
             profil=profil,
             display=display,
-            granularity="hourly",
+            granularity="quarter_hourly",
         )
 
         prices = prices_data.get("prices", [])
 
-        # Build simplified price list with hour and all price components
+        # Build simplified price list with slot (0-95 for 15-min intervals)
         price_list = []
-        for price_point in prices:
+        for i, price_point in enumerate(prices):
             price_entry = {
-                "hour": price_point.get("hour"),
+                "slot": i,
                 "timestamp": price_point.get("timestamp"),
                 "price_eur_kwh": price_point.get("price_ttc_eur_kwh")
                 if display == "TTC"
@@ -288,6 +316,139 @@ async def _async_handle_get_price_history(
         }
     except Exception as err:
         _LOGGER.error("Error fetching price history: %s", err)
+        return {
+            "success": False,
+            "error": str(err),
+        }
+
+
+async def _async_handle_get_cheapest_slots(
+    hass: HomeAssistant, call: ServiceCall
+) -> dict[str, Any]:
+    """Handle get cheapest slots service call.
+
+    Returns the N cheapest 15-min slots for the current day.
+    Useful for scheduling water heater during cheapest periods.
+    """
+    from datetime import date, timedelta
+
+    _, segment, turpe, profil, display = await _async_get_config_from_call(hass, call)
+    slots_count = call.data.get("slots_count", 4)
+
+    _LOGGER.debug(
+        "Finding %d cheapest slots (segment=%s, turpe=%s, profil=%s, display=%s)",
+        slots_count,
+        segment,
+        turpe,
+        profil,
+        display,
+    )
+
+    try:
+        today = date.today().isoformat()
+        tomorrow = (date.today() + timedelta(days=1)).isoformat()
+
+        # Fetch today's prices with 15-min granularity
+        prices_data = await SobryDataUpdateCoordinator.async_fetch_history(
+            hass,
+            start_date=today,
+            end_date=tomorrow,
+            segment=segment,
+            turpe=turpe,
+            profil=profil,
+            display=display,
+            granularity="quarter_hourly",
+        )
+
+        prices = prices_data.get("prices", [])
+        if not prices:
+            return {
+                "success": False,
+                "error": "No price data available",
+            }
+
+        # Build list with prices and sort by cheapest
+        price_field = "price_ttc_eur_kwh" if display == "TTC" else "price_ht_eur_kwh"
+
+        slots_with_prices = []
+        for i, price_point in enumerate(prices):
+            price = price_point.get(price_field)
+            if price is not None:
+                slots_with_prices.append(
+                    {
+                        "slot": i,
+                        "timestamp": price_point.get("timestamp"),
+                        "price_eur_kwh": price,
+                    }
+                )
+
+        # Sort by price and get N cheapest
+        sorted_slots = sorted(slots_with_prices, key=lambda x: x["price_eur_kwh"])
+        cheapest_slots = sorted_slots[: min(slots_count, len(sorted_slots))]
+
+        # Sort by time for chronological order in response
+        cheapest_slots = sorted(cheapest_slots, key=lambda x: x["slot"])
+
+        # Build periods (consecutive slots grouped together)
+        periods = []
+        current_period = None
+
+        for slot in cheapest_slots:
+            slot_num = slot["slot"]
+            hour = slot_num // 4
+            minute = (slot_num % 4) * 15
+
+            if current_period is None or slot_num != current_period["end_slot"] + 1:
+                # Start new period
+                if current_period:
+                    periods.append(current_period)
+                current_period = {
+                    "start_slot": slot_num,
+                    "end_slot": slot_num,
+                    "start_time": f"{hour:02d}:{minute:02d}",
+                    "end_time": f"{hour:02d}:{minute + 15:02d}",
+                    "price_eur_kwh": slot["price_eur_kwh"],
+                    "slots": [slot],
+                }
+            else:
+                # Extend current period
+                current_period["end_slot"] = slot_num
+                current_period["end_time"] = f"{hour:02d}:{minute + 15:02d}"
+                current_period["slots"].append(slot)
+                # Average price for the period
+                current_period["price_eur_kwh"] = round(
+                    sum(s["price_eur_kwh"] for s in current_period["slots"])
+                    / len(current_period["slots"]),
+                    6,
+                )
+
+        if current_period:
+            periods.append(current_period)
+
+        return {
+            "success": True,
+            "date": today,
+            "segment": segment,
+            "turpe": turpe,
+            "profil": profil,
+            "display": display,
+            "slots_count": len(cheapest_slots),
+            "total_periods": len(periods),
+            "price_unit": "€/kWh",
+            "cheapest_slots": cheapest_slots,
+            "periods": [
+                {
+                    "start": p["start_time"],
+                    "end": p["end_time"],
+                    "duration_minutes": (p["end_slot"] - p["start_slot"] + 1) * 15,
+                    "price_eur_kwh": p["price_eur_kwh"],
+                }
+                for p in periods
+            ],
+            "statistics": prices_data.get("statistics", {}),
+        }
+    except Exception as err:
+        _LOGGER.error("Error finding cheapest slots: %s", err)
         return {
             "success": False,
             "error": str(err),

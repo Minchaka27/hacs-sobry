@@ -61,12 +61,13 @@ get_price_history:
             - "TTC"
     granularity:
       name: Granularity
-      description: Data granularity (hourly or daily)
+      description: Data granularity (quarter_hourly, hourly or daily)
       required: false
-      default: hourly
+      default: quarter_hourly
       selector:
         select:
           options:
+            - "quarter_hourly"
             - "hourly"
             - "daily"
 
@@ -74,6 +75,66 @@ get_all_prices:
   name: Get All Prices
   description: Retrieve all prices for today (current day-ahead prices)
   fields:
+    config_entry_id:
+      name: Config Entry ID
+      description: Configuration entry to use for pricing parameters (optional)
+      required: false
+      selector:
+        text:
+    segment:
+      name: Segment
+      description: Tariff segment (C5 or C4)
+      required: false
+      selector:
+        select:
+          options:
+            - "C5"
+            - "C4"
+    turpe:
+      name: TURPE Option
+      description: TURPE option
+      required: false
+      selector:
+        select:
+          options:
+            - "CU"
+            - "CU4"
+            - "MU4"
+            - "MUDT"
+            - "LU"
+    profil:
+      name: Profile
+      description: Customer profile (particulier or pro)
+      required: false
+      selector:
+        select:
+          options:
+            - "particulier"
+            - "pro"
+    display:
+      name: Display Mode
+      description: Display prices HT or TTC
+      required: false
+      selector:
+        select:
+          options:
+            - "HT"
+            - "TTC"
+
+get_cheapest_slots:
+  name: Get Cheapest Slots
+  description: Find the cheapest 15-minute time slots for the current day (useful for water heater scheduling)
+  fields:
+    slots_count:
+      name: Number of Slots
+      description: Number of cheapest 15-minute slots to return (default 4 = 1 hour)
+      required: false
+      default: 4
+      selector:
+        number:
+          min: 1
+          max: 96
+          step: 1
     config_entry_id:
       name: Config Entry ID
       description: Configuration entry to use for pricing parameters (optional)
