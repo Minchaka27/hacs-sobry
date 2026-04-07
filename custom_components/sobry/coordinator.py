@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -15,7 +15,6 @@ import aiohttp
 from .const import (
     API_BASE_URL,
     API_ENDPOINT_RAW,
-    API_ENDPOINT_TOMORROW,
     API_TIMEOUT,
     CONF_DISPLAY,
     CONF_PROFIL,
@@ -54,56 +53,8 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> dict:
         """Fetch data from Sobry API."""
         try:
-            url = f"{API_BASE_URL}{API_ENDPOINT_TOMORROW}"
-            params = {}
-
-            # Add pricing parameters
-            if self.segment:
-                params["segment"] = self.segment
-            if self.turpe:
-                params["turpe"] = self.turpe
-            if self.profil:
-                params["profil"] = self.profil
-            if self.display:
-                params["display"] = self.display
-
-            _LOGGER.debug("Fetching data from %s with params: %s", url, params)
-
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=API_TIMEOUT)
-            ) as session:
-                async with session.get(url, params=params) as response:
-                    if response.status == 429:
-                        raise UpdateFailed("Rate limit exceeded (100 req/min)")
-                    elif response.status == 404:
-                        raise UpdateFailed("No data available for the requested period")
-                    elif response.status >= 400:
-                        text = await response.text()
-                        # Check if it's a "data not available yet" error (before ~13h)
-                        if (
-                            "pas disponible" in text.lower()
-                            or "not available" in text.lower()
-                        ):
-                            _LOGGER.debug(
-                                "Tomorrow data not available yet (before ~13h), trying today's data"
-                            )
-                            return await self._fetch_today_data()
-                        raise UpdateFailed(f"API error {response.status}: {text}")
-
-                    data = await response.json()
-
-            if not data.get("success"):
-                raise UpdateFailed("API returned unsuccessful response")
-
-            # Process and enrich data
-            processed_data = self._process_data(data)
-
-            _LOGGER.debug(
-                "Successfully fetched data with %d price points",
-                len(processed_data.get("prices", [])),
-            )
-
-            return processed_data
+            # Récupérer les données du jour en cours
+            return await self._fetch_today_data()
 
         except aiohttp.ClientError as err:
             raise UpdateFailed(f"Connection error: {err}") from err
@@ -113,8 +64,9 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             ) from err
 
     async def _fetch_today_data(self) -> dict:
-        """Fetch today's data as fallback when tomorrow data is not available."""
+        """Fetch today's data."""
         from datetime import date, timedelta
+        from statistics import mean, median
 
         today = date.today()
         tomorrow = today + timedelta(days=1)
@@ -136,7 +88,11 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                 timeout=aiohttp.ClientTimeout(total=API_TIMEOUT)
             ) as session:
                 async with session.get(url, params=params) as response:
-                    if response.status >= 400:
+                    if response.status == 429:
+                        raise UpdateFailed("Rate limit exceeded (100 req/min)")
+                    elif response.status == 404:
+                        raise UpdateFailed("No data available for the requested period")
+                    elif response.status >= 400:
                         text = await response.text()
                         raise UpdateFailed(f"API error {response.status}: {text}")
 
@@ -145,18 +101,37 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             if not data.get("success"):
                 raise UpdateFailed("API returned unsuccessful response")
 
+            prices_data = data.get("data", [])
+
+            # Calculer les statistiques si non fournies par l'API
+            statistics = data.get("statistics", {})
+            if not statistics and prices_data:
+                price_field = self._get_price_field_for_data(data)
+                all_prices = [
+                    p.get(price_field)
+                    for p in prices_data
+                    if p.get(price_field) is not None
+                ]
+                if all_prices:
+                    statistics = {
+                        "min": min(all_prices),
+                        "max": max(all_prices),
+                        "average": round(mean(all_prices), 6),
+                        "median": round(median(all_prices), 6),
+                    }
+
             # Adapt raw endpoint response to tomorrow endpoint format
             processed_data = {
-                "date": today,
+                "date": today.isoformat(),
                 "timezone": data.get("timezone", "Europe/Paris (CET)"),
                 "count": data.get("count", 0),
-                "statistics": data.get("statistics", {}),
+                "statistics": statistics,
                 "pricing_metadata": data.get("pricing_metadata", {}),
-                "prices": data.get("data", []),
+                "prices": prices_data,
                 "current_price": None,
                 "next_hour_price": None,
                 "last_updated": dt_util.now().isoformat(),
-                "note": "Données du jour (demain non disponible avant ~13h)",
+                "note": None,
             }
 
             # Find current and next hour prices
@@ -181,32 +156,16 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                     continue
 
             _LOGGER.debug(
-                "Successfully fetched today's data with %d price points",
+                "Successfully fetched today's data with %d price points, stats: %s",
                 len(processed_data.get("prices", [])),
+                statistics,
             )
 
             return processed_data
 
         except Exception as err:
             _LOGGER.warning("Failed to fetch today's data: %s", err)
-            # Return empty data structure to allow configuration to proceed
-            return self._get_empty_data()
-
-    def _get_empty_data(self) -> dict:
-        """Return empty data structure when no data is available."""
-        now = dt_util.now()
-        return {
-            "date": now.date().isoformat(),
-            "timezone": "Europe/Paris (CET)",
-            "count": 0,
-            "statistics": {},
-            "pricing_metadata": {},
-            "prices": [],
-            "current_price": None,
-            "next_hour_price": None,
-            "last_updated": now.isoformat(),
-            "note": "Données temporairement indisponibles (disponibles à partir de ~13h)",
-        }
+            raise UpdateFailed(f"Failed to fetch data: {err}") from err
 
     def _process_data(self, data: dict) -> dict:
         """Process API response data."""
@@ -255,6 +214,31 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
             "next_hour_price": next_hour_price,
             "last_updated": now.isoformat(),
         }
+
+    def _get_price_field_for_data(self, data: dict) -> str:
+        """Determine which price field to use for statistics based on metadata."""
+        pricing_metadata = data.get("pricing_metadata", {})
+
+        if pricing_metadata.get("enabled"):
+            display = pricing_metadata.get("display", self.display)
+            if display == "TTC":
+                return "price_ttc_eur_kwh"
+            else:
+                return "price_ht_eur_kwh"
+
+        # Fallback: try to detect from first price data
+        prices = data.get("data", [])
+        if prices:
+            first = prices[0]
+            if "price_ttc_eur_kwh" in first:
+                return "price_ttc_eur_kwh"
+            elif "price_ht_eur_kwh" in first:
+                return "price_ht_eur_kwh"
+            elif "spot_price_eur_kwh" in first:
+                return "spot_price_eur_kwh"
+
+        # Default fallback
+        return "price_ttc_eur_kwh"
 
     def get_price_for_hour(self, hour: int) -> dict | None:
         """Get price data for a specific hour."""

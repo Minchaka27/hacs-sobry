@@ -147,22 +147,21 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
         attrs["timezone"] = self.coordinator.data.get("timezone")
         attrs["last_updated"] = self.coordinator.data.get("last_updated")
 
-        # Add all prices for current_price sensor
-        if self.sensor_type == SENSOR_CURRENT_PRICE:
-            prices = self.coordinator.data.get("prices", [])
-            if prices:
-                # Extract simplified price list (hour and price)
-                price_field = self._get_price_field()
-                attrs["all_prices"] = [
-                    {
-                        "hour": i,
-                        "timestamp": p.get("timestamp"),
-                        "price": p.get(price_field),
-                        "spot_price": p.get("spot_price_eur_kwh"),
-                    }
-                    for i, p in enumerate(prices)
-                ]
-                attrs["prices_count"] = len(prices)
+        # Add all prices for all sensors
+        prices = self.coordinator.data.get("prices", [])
+        if prices:
+            # Extract simplified price list (hour and price)
+            price_field = self._get_price_field()
+            attrs["all_prices"] = [
+                {
+                    "hour": i,
+                    "timestamp": p.get("timestamp"),
+                    "price": p.get(price_field),
+                    "spot_price": p.get("spot_price_eur_kwh"),
+                }
+                for i, p in enumerate(prices)
+            ]
+            attrs["prices_count"] = len(prices)
 
         # Add price details for current/next hour sensors
         price_field = self._get_price_field()
