@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import Any
 
@@ -17,6 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
+    SENSOR_ALL_PRICES,
     SENSOR_AVG_PRICE,
     SENSOR_CURRENT_PRICE,
     SENSOR_MAX_PRICE,
@@ -63,8 +65,8 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
 
         # Set name and icon based on sensor type
         self._attr_name = self._get_sensor_name()
-        self._attr_icon = "mdi:flash"
-        self._attr_native_unit_of_measurement = "€/kWh"
+        self._attr_icon = self._get_sensor_icon()
+        self._attr_native_unit_of_measurement = self._get_sensor_unit()
 
     def _get_sensor_name(self) -> str:
         """Get the sensor name based on type."""
@@ -75,11 +77,24 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
             SENSOR_AVG_PRICE: "Prix moyen",
             SENSOR_MEDIAN_PRICE: "Prix médian",
             SENSOR_NEXT_HOUR_PRICE: "Prix heure prochaine",
+            SENSOR_ALL_PRICES: "Prix du jour",
         }
         return names.get(self.sensor_type, self.sensor_type)
 
+    def _get_sensor_icon(self) -> str:
+        """Get the sensor icon based on type."""
+        if self.sensor_type == SENSOR_ALL_PRICES:
+            return "mdi:chart-line"
+        return "mdi:flash"
+
+    def _get_sensor_unit(self) -> str | None:
+        """Get the sensor unit based on type."""
+        if self.sensor_type == SENSOR_ALL_PRICES:
+            return None  # JSON data has no unit
+        return "€/kWh"
+
     @property
-    def native_value(self) -> float | None:
+    def native_value(self) -> float | str | None:
         """Return the state of the sensor."""
         if not self.coordinator.data:
             return None
@@ -107,10 +122,31 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
         elif self.sensor_type == SENSOR_MEDIAN_PRICE:
             return self.coordinator.data.get("statistics", {}).get("median")
 
+        elif self.sensor_type == SENSOR_ALL_PRICES:
+            prices = self.coordinator.data.get("prices", [])
+            if not prices:
+                return None
+            price_field = self._get_price_field()
+            # Build a list of all prices with hour and timestamp
+            all_prices = []
+            for i, p in enumerate(prices):
+                all_prices.append(
+                    {
+                        "hour": i,
+                        "timestamp": p.get("timestamp"),
+                        "price": p.get(price_field),
+                        "spot_price": p.get("spot_price_eur_kwh"),
+                    }
+                )
+            return json.dumps(all_prices, ensure_ascii=False)
+
         return None
 
     def _get_price_field(self) -> str:
         """Get the price field name based on coordinator configuration."""
+        if not self.coordinator.data:
+            return "price_ttc_eur_kwh"
+
         # Check if pricing metadata is available
         pricing_metadata = self.coordinator.data.get("pricing_metadata", {})
 
@@ -121,8 +157,21 @@ class SobryPriceSensor(CoordinatorEntity, SensorEntity):
             else:
                 return "price_ht_eur_kwh"
 
-        # Fallback to spot_price if no pricing
-        return "spot_price"
+        # Try to auto-detect from first price data
+        prices = self.coordinator.data.get("prices", [])
+        if prices:
+            first = prices[0]
+            if "price_ttc_eur_kwh" in first:
+                return "price_ttc_eur_kwh"
+            elif "price_ht_eur_kwh" in first:
+                return "price_ht_eur_kwh"
+            elif "spot_price_eur_kwh" in first:
+                return "spot_price_eur_kwh"
+            elif "spot_price" in first:
+                return "spot_price"
+
+        # Default fallback
+        return "price_ttc_eur_kwh"
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

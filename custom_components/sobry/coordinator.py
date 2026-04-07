@@ -102,6 +102,9 @@ class SobryDataUpdateCoordinator(DataUpdateCoordinator):
                 raise UpdateFailed("API returned unsuccessful response")
 
             prices_data = data.get("data", [])
+            _LOGGER.debug("API returned %d price points", len(prices_data))
+            if prices_data:
+                _LOGGER.debug("First price point: %s", prices_data[0])
 
             # Calculer les statistiques si non fournies par l'API
             statistics = data.get("statistics", {})

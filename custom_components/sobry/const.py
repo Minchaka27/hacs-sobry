@@ -45,6 +45,7 @@ SENSOR_MAX_PRICE: Final = "max_price"
 SENSOR_AVG_PRICE: Final = "avg_price"
 SENSOR_MEDIAN_PRICE: Final = "median_price"
 SENSOR_NEXT_HOUR_PRICE: Final = "next_hour_price"
+SENSOR_ALL_PRICES: Final = "all_prices"
 
 SENSOR_TYPES: Final = [
     SENSOR_CURRENT_PRICE,
@@ -53,4 +54,5 @@ SENSOR_TYPES: Final = [
     SENSOR_AVG_PRICE,
     SENSOR_MEDIAN_PRICE,
     SENSOR_NEXT_HOUR_PRICE,
+    SENSOR_ALL_PRICES,
 ]
